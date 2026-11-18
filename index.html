@@ -180,7 +180,7 @@
 <div class="app" dir="rtl" id="app"></div>
 <script type="module">
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getAuth, initializeAuth, inMemoryPersistence, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -197,7 +197,8 @@ const EMAIL_DOMAIN = "@oral-liquid.app";
 const ADMIN_EMAIL = "ramyar" + EMAIL_DOMAIN;
 
 const fbApp = initializeApp(firebaseConfig);
-const auth = getAuth(fbApp);
+// In-memory persistence: the sign-in is never saved, so the app asks for the password every time it opens.
+const auth = initializeAuth(fbApp, { persistence: inMemoryPersistence });
 const db = getFirestore(fbApp);
 
 const DIGITS = ["٠","١","٢","٣","٤","٥","٦","٧","٨","٩"];
@@ -600,4 +601,3 @@ renderLoading();
 </script>
 </body>
 </html>
-
