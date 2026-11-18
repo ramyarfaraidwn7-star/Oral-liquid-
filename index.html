@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Oral liquid</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f766e'/%3E%3Cpath d='M32 12c8 10 14 17 14 25a14 14 0 0 1-28 0c0-8 6-15 14-25z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;700;800&display=swap">
+<style>
+  /* Layout: single-column mobile app. Home with two large choices, list view, detail view, plus a demo admin area (login, overview, editor). */
+  :root {
+    --bg: #f2f5f4;
+    --surface: #ffffff;
+    --fg: #14211f;
+    --muted: #5d6f6b;
+    --line: #d9e2df;
+    --a1: #0f766e;
+    --a1-soft: #d7efec;
+    --a2: #c2410c;
+    --a2-soft: #fbe3d6;
+    --a3: #4f46e5;
+    --a3-soft: #e3e2fb;
+    --danger: #b42318;
+    --on-accent: #ffffff;
+    --font: "Noto Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1615; --surface: #172221; --fg: #e8f0ee; --muted: #93a8a3; --line: #263836;
+      --a1: #2dd4bf; --a1-soft: #12332f; --a2: #fb923c; --a2-soft: #3a2316; --a3: #a5b4fc; --a3-soft: #25264a; --danger: #f87171; --on-accent: #0e1615;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1615; --surface: #172221; --fg: #e8f0ee; --muted: #93a8a3; --line: #263836;
+    --a1: #2dd4bf; --a1-soft: #12332f; --a2: #fb923c; --a2-soft: #3a2316; --a3: #a5b4fc; --a3-soft: #25264a; --danger: #f87171; --on-accent: #0e1615;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.6;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 20px;
+    margin: 0;
+  }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
+  button, input, textarea { font-family: inherit; font-size: 1rem; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--a1); outline-offset: 2px; }
+  .theme-2 :focus-visible { outline-color: var(--a2); }
+  .theme-3 :focus-visible { outline-color: var(--a3); }
+
+  /* Home */
+  .home { display: flex; flex-direction: column; flex: 1; justify-content: center; gap: 28px; padding-block: 24px; }
+  .brand h1 { font-size: 2rem; font-weight: 800; margin: 0 0 6px; text-wrap: balance; line-height: 1.3; }
+  .brand p { margin: 0; color: var(--muted); }
+  .choices { display: grid; gap: 14px; }
+  .choice {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    width: 100%; text-align: start; border: 0; border-radius: 20px; padding: 22px 20px;
+    color: var(--on-accent); min-height: 112px; transition: transform .12s ease;
+  }
+  .choice:active { transform: scale(.98); }
+  .choice.c1 { background: var(--a1); }
+  .choice.c2 { background: var(--a2); }
+  .choice.c3 { background: var(--a3); }
+  .choice .t { display: block; font-size: 1.35rem; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+  .choice .s { display: block; font-size: .95rem; opacity: .9; margin-top: 4px; }
+  .choice .n { font-size: 2.6rem; font-weight: 800; line-height: 1; flex: none; }
+  .admin-link { align-self: center; background: none; border: 0; color: var(--muted); font-size: .9rem; padding: 10px 14px; text-decoration: underline; text-underline-offset: 4px; }
+
+  /* Header for inner views */
+  .bar { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; }
+  .back {
+    flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--surface); color: var(--fg); display: grid; place-items: center;
+  }
+  .back svg { width: 22px; height: 22px; }
+  [dir="rtl"] .back svg { transform: scaleX(-1); }
+  .bar h2 { margin: 0; font-size: 1.3rem; font-weight: 800; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
+  .bar .count { margin-inline-start: auto; flex: none; font-size: .85rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
+  .theme-1 .count { background: var(--a1-soft); color: var(--a1); }
+  .theme-2 .count { background: var(--a2-soft); color: var(--a2); }
+  .theme-3 .count { background: var(--a3-soft); color: var(--a3); }
+
+  /* List */
+  .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .grid-16 { grid-template-columns: 1fr 1fr; }
+  .item {
+    width: 100%; display: flex; align-items: center; gap: 12px; text-align: start;
+    border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+    border-radius: 14px; padding: 14px; min-height: 56px; font-weight: 500;
+  }
+  .item .badge, .row .badge {
+    flex: none; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
+    font-weight: 700; font-size: .95rem;
+  }
+  .theme-1 .badge { background: var(--a1-soft); color: var(--a1); }
+  .theme-2 .badge { background: var(--a2-soft); color: var(--a2); }
+  .theme-3 .badge { background: var(--a3-soft); color: var(--a3); }
+  .item span.name { min-width: 0; overflow-wrap: anywhere; }
+
+  /* Detail */
+  .detail { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 24px 20px; }
+  .detail .badge-lg { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; font-size: 1.5rem; font-weight: 800; margin-bottom: 14px; }
+  .theme-1 .badge-lg { background: var(--a1-soft); color: var(--a1); }
+  .theme-2 .badge-lg { background: var(--a2-soft); color: var(--a2); }
+  .theme-3 .badge-lg { background: var(--a3-soft); color: var(--a3); }
+  .detail h3 { margin: 0 0 8px; font-size: 1.4rem; font-weight: 800; overflow-wrap: anywhere; }
+  .detail p { margin: 0; color: var(--muted); overflow-wrap: anywhere; }
+
+  /* Admin */
+  .demo-note { background: var(--a2-soft); color: var(--fg); border-radius: 12px; padding: 10px 14px; font-size: .9rem; margin-bottom: 16px; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 14px; }
+  .panel h3 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+  .field { display: grid; gap: 6px; }
+  .field label { font-size: .9rem; font-weight: 700; color: var(--muted); }
+  .input {
+    width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px;
+    background: var(--bg); color: var(--fg);
+  }
+  .btn {
+    min-height: 48px; border: 0; border-radius: 12px; padding: 10px 18px; font-weight: 700;
+    background: var(--a1); color: var(--on-accent);
+  }
+  .btn.alt { background: var(--surface); color: var(--fg); border: 1px solid var(--line); }
+  .btn.warn { background: none; color: var(--danger); border: 1px solid var(--line); }
+  .btn.block { width: 100%; }
+  .err { color: var(--danger); font-size: .9rem; margin: 0; min-height: 1.4em; }
+  .admin-cards { display: grid; gap: 12px; }
+  .acard {
+    width: 100%; text-align: start; border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+    border-radius: 16px; padding: 16px; display: flex; align-items: center; gap: 14px; min-height: 76px;
+  }
+  .acard .dot { flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-weight: 800; }
+  .acard.k1 .dot { background: var(--a1-soft); color: var(--a1); }
+  .acard.k2 .dot { background: var(--a2-soft); color: var(--a2); }
+  .acard .tt { font-weight: 700; overflow-wrap: anywhere; }
+  .acard .ss { font-size: .88rem; color: var(--muted); }
+  .rows { display: grid; gap: 10px; }
+  .row { border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: grid; gap: 8px; background: var(--bg); }
+  .row-top { display: flex; align-items: center; gap: 10px; }
+  .row-top .input { flex: 1; min-width: 0; }
+  .row-tools { display: flex; gap: 8px; justify-content: flex-end; }
+  .tool {
+    width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
+    color: var(--fg); font-size: 1.1rem; display: grid; place-items: center;
+  }
+  .tool.del { color: var(--danger); }
+  .tool:disabled { opacity: .35; cursor: default; }
+  .savebar { position: sticky; bottom: 0; padding-block: 12px; background: var(--bg); display: flex; gap: 10px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .savebar .btn { flex: 1; }
+  .toast {
+    position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+    background: var(--fg); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-weight: 700; z-index: 20;
+  }
+
+  .ulist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .urow { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 12px; padding: 8px; padding-inline-start: 14px; background: var(--bg); }
+  .urow .un { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 700; }
+  .empty { color: var(--muted); margin: 0; }
+  .acard.k3 .dot { background: var(--a3-soft); color: var(--a3); }
+  .acard.ku .dot { background: var(--line); color: var(--fg); }
+
+  @media (max-width: 340px) { .grid-16 { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { .choice { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app" dir="rtl" id="app"></div>
+<script type="module">
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBqvWt1sIZUVD9hwC8YsYs-NyaVoF6VUms",
+  authDomain: "oral-liquid.firebaseapp.com",
+  projectId: "oral-liquid",
+  storageBucket: "oral-liquid.firebasestorage.app",
+  messagingSenderId: "886518485280",
+  appId: "1:886518485280:web:532e38b843a100f2088745"
+};
+
+// The admin signs in with the name "ramyar"; its account is created once in Firebase Authentication.
+const EMAIL_DOMAIN = "@oral-liquid.app";
+const ADMIN_EMAIL = "ramyar" + EMAIL_DOMAIN;
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+const DIGITS = ["٠","١","٢","٣","٤","٥","٦","٧","٨","٩"];
+function kn(n) { return String(n).split("").map(function (d) { return DIGITS[+d]; }).join(""); }
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+const OPTION_KEYS = ["option-1", "option-2", "option-3"];
+const THEME = { "option-1": "theme-1", "option-2": "theme-2", "option-3": "theme-3" };
+
+// Initial content, written to the database the first time the admin signs in.
+function defaults() {
+  function make(n) {
+    var a = [];
+    for (var i = 1; i <= n; i++) a.push({ name: "بڕگەی " + kn(i), text: "ناوەڕۆکی ئەم بڕگەیە لێرە دەردەکەوێت." });
+    return a;
+  }
+  return {
+    "option-1": { title: "Suspension", items: make(7) },
+    "option-2": { title: "Syrup", items: make(17) },
+    "option-3": { title: "Saclorin", items: make(8) }
+  };
+}
+
+// Names may be Kurdish; Firebase needs an email, so the name is turned into a hidden email address.
+function toEmail(name) {
+  var n = name.trim();
+  var local;
+  if (/^[A-Za-z0-9._-]+$/.test(n)) local = n.toLowerCase();
+  else local = "u" + Array.from(new TextEncoder().encode(n.toLowerCase())).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+  return local + EMAIL_DOMAIN;
+}
+
+var data = {};
+var users = [];
+var currentUser = null;
+var isAdmin = false;
+var draft = null;
+var view = "loading";
+var loginMsg = "";
+var unsubOptions = null, unsubUsers = null, seeding = false;
+var app = document.getElementById("app");
+var BACK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>';
+
+function backBtn(attr, val) { return '<button class="back" ' + attr + '="' + val + '" aria-label="گەڕانەوە">' + BACK_SVG + '</button>'; }
+
+function toast(msg) {
+  var t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg; t.setAttribute("role", "status");
+  document.body.appendChild(t);
+  setTimeout(function () { t.remove(); }, 2200);
+}
+
+function authMsg(e) {
+  var c = (e && e.code) || "";
+  if (c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found" || c === "auth/invalid-email") return "ناو یان وشەی تێپەڕ هەڵەیە. دووبارە تاقی بکەرەوە.";
+  if (c === "auth/too-many-requests") return "هەوڵی زۆر درا. کەمێک چاوەڕێ بکە و دووبارە هەوڵ بدەرەوە.";
+  if (c === "auth/network-request-failed") return "پەیوەندی ئینتەرنێت نییە.";
+  if (c === "auth/operation-not-allowed") return "Email/Password لە Firebase چالاک نەکراوە.";
+  return "هەڵەیەک ڕوویدا. دووبارە هەوڵ بدەرەوە.";
+}
+
+/* ---------- Views ---------- */
+function renderLoading() {
+  view = "loading";
+  app.className = "app";
+  app.innerHTML = '<main class="home"><p class="empty" style="text-align:center">چاوەڕێ بکە...</p></main>';
+}
+
+function renderLogin() {
+  view = "login";
+  app.className = "app";
+  app.innerHTML =
+    '<main class="home">' +
+      '<div class="brand"><h1 dir="ltr" style="text-align:right">Oral liquid</h1><p>ناو و وشەی تێپەڕەکەت بنووسە</p></div>' +
+      '<form class="panel" id="loginForm" autocomplete="off">' +
+        '<div class="field"><label for="ln">ناو</label><input class="input" id="ln" type="text" dir="auto" autocapitalize="off"></div>' +
+        '<div class="field"><label for="lp">وشەی تێپەڕ</label><input class="input" id="lp" type="password" dir="ltr"></div>' +
+        '<p class="err" id="lerr" role="alert">' + esc(loginMsg) + '</p>' +
+        '<button class="btn block" id="lbtn" type="submit">چوونەژوورەوە</button>' +
+      '</form>' +
+    '</main>';
+}
+
+function renderHome() {
+  view = "home";
+  app.className = "app";
+  var btns = "";
+  OPTION_KEYS.forEach(function (k, idx) {
+    var o = data[k];
+    if (!o) return;
+    btns += '<button class="choice c' + (idx + 1) + '" data-go="' + k + '"><span><span class="t" dir="auto">' + esc(o.title) + '</span><span class="s">' + kn(o.items.length) + ' بڕگە</span></span><span class="n">' + kn(o.items.length) + '</span></button>';
+  });
+  if (!btns) btns = '<p class="empty">هێشتا هیچ ناوەڕۆکێک دانەنراوە.</p>';
+  app.innerHTML =
+    '<main class="home">' +
+      '<div class="brand"><h1 dir="ltr" style="text-align:right">Oral liquid</h1><p>یەکێک لە ئۆپشنەکان هەڵبژێرە</p></div>' +
+      '<div class="choices">' + btns + '</div>' +
+      '<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">' +
+        (isAdmin ? '<button class="admin-link" data-go="admin">پەڕەی ئەدمین</button>' : '') +
+        '<button class="admin-link" data-signout="1">چوونەدەرەوە' + (currentUser && currentUser.name ? ' (' + esc(currentUser.name) + ')' : '') + '</button>' +
+      '</div>' +
+    '</main>';
+}
+
+function renderList(key) {
+  view = "list";
+  var o = data[key];
+  app.className = "app " + THEME[key];
+  app.dataset.key = key;
+  var items = "";
+  for (var i = 0; i < o.items.length; i++) {
+    items += '<li><button class="item" data-item="' + i + '"><span class="badge">' + kn(i + 1) + '</span><span class="name" dir="auto">' + esc(o.items[i].name) + '</span></button></li>';
+  }
+  app.innerHTML =
+    '<header class="bar">' + backBtn("data-go", "home") +
+    '<h2 dir="auto">' + esc(o.title) + '</h2><span class="count">' + kn(o.items.length) + ' بڕگە</span></header>' +
+    '<main><ul class="list' + (o.items.length > 8 ? ' grid-16' : '') + '">' + items + '</ul></main>';
+}
+
+function renderDetail(key, i) {
+  view = "detail";
+  var o = data[key], it = o.items[i];
+  if (!it) { renderList(key); return; }
+  app.innerHTML =
+    '<header class="bar">' + backBtn("data-back-list", key) + '<h2 dir="auto">' + esc(o.title) + '</h2></header>' +
+    '<main><section class="detail"><div class="badge-lg">' + kn(+i + 1) + '</div><h3 dir="auto">' + esc(it.name) + '</h3>' +
+    '<p>' + esc(it.text) + '</p></section></main>';
+}
+
+function renderAdminHome() {
+  view = "admin";
+  app.className = "app";
+  var cards = "";
+  OPTION_KEYS.forEach(function (k, idx) {
+    var o = data[k];
+    if (!o) return;
+    cards += '<button class="acard k' + (idx + 1) + '" data-edit="' + k + '"><span class="dot">' + kn(idx + 1) + '</span><span><span class="tt" dir="auto">' + esc(o.title) + '</span><br><span class="ss">' + kn(o.items.length) + ' بڕگە · دەستکاری بکە</span></span></button>';
+  });
+  app.innerHTML =
+    '<header class="bar">' + backBtn("data-go", "home") + '<h2>پەڕەی ئەدمین</h2></header>' +
+    '<main><div class="admin-cards">' + cards +
+      '<button class="acard ku" data-users="1"><span class="dot">+</span><span><span class="tt">بەکارهێنەران</span><br><span class="ss">' + kn(users.length) + ' هەژمار · زیادکردنی بەکارهێنەر</span></span></button>' +
+    '</div></main>';
+}
+
+function usersListHtml() {
+  if (!users.length) return '<p class="empty">هێشتا هیچ بەکارهێنەرێک نییە. یەکەم هەژمار لە سەرەوە زیاد بکە.</p>';
+  var rows = "";
+  for (var i = 0; i < users.length; i++) {
+    rows += '<li class="urow"><span class="un" dir="auto">' + esc(users[i].name || users[i].email) + '</span>' +
+      '<button class="tool del" data-deluser="' + esc(users[i].uid) + '" aria-label="سڕینەوەی ' + esc(users[i].name || "") + '">✕</button></li>';
+  }
+  return '<ul class="ulist">' + rows + '</ul>';
+}
+
+function renderUsers() {
+  view = "users";
+  app.className = "app";
+  app.innerHTML =
+    '<header class="bar">' + backBtn("data-go", "admin") + '<h2>بەکارهێنەران</h2><span class="count" id="ucount" style="background:var(--line);color:var(--fg)">' + kn(users.length) + ' هەژمار</span></header>' +
+    '<main><form class="panel" id="userForm" autocomplete="off">' +
+      '<h3>زیادکردنی بەکارهێنەر</h3>' +
+      '<div class="field"><label for="nu">ناو</label><input class="input" id="nu" type="text" dir="auto" autocapitalize="off"></div>' +
+      '<div class="field"><label for="np">وشەی تێپەڕ</label><input class="input" id="np" type="text" dir="ltr" autocapitalize="off"></div>' +
+      '<p class="err" id="uerr" role="alert"></p>' +
+      '<button class="btn block" id="ubtn" type="submit">+ زیادکردن</button>' +
+    '</form>' +
+    '<div class="panel" style="margin-top:14px"><h3>هەژمارەکان</h3><div id="ulistbox">' + usersListHtml() + '</div>' +
+    '<p class="empty" style="font-size:.85rem">سڕینەوە ڕێگری لە چوونەژوورەوەی ئەو هەژمارە دەکات.</p></div></main>';
+}
+
+function refreshUsersList() {
+  var box = document.getElementById("ulistbox"), c = document.getElementById("ucount");
+  if (box) box.innerHTML = usersListHtml();
+  if (c) c.textContent = kn(users.length) + " هەژمار";
+}
+
+function renderEdit(key) {
+  view = "edit";
+  if (!draft) draft = JSON.parse(JSON.stringify(data[key]));
+  app.className = "app " + THEME[key];
+  app.dataset.key = key;
+  var rows = "";
+  for (var i = 0; i < draft.items.length; i++) {
+    var it = draft.items[i];
+    rows +=
+      '<div class="row"><div class="row-top"><span class="badge">' + kn(i + 1) + '</span>' +
+      '<input class="input" data-f="name" data-i="' + i + '" dir="auto" value="' + esc(it.name) + '" aria-label="ناوی بڕگە"></div>' +
+      '<input class="input" data-f="text" data-i="' + i + '" dir="auto" value="' + esc(it.text) + '" aria-label="نووسینی بڕگە">' +
+      '<div class="row-tools">' +
+        '<button class="tool" data-mv="-1" data-i="' + i + '" aria-label="بۆ سەرەوە"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+        '<button class="tool" data-mv="1" data-i="' + i + '" aria-label="بۆ خوارەوە"' + (i === draft.items.length - 1 ? ' disabled' : '') + '>↓</button>' +
+        '<button class="tool del" data-del="' + i + '" aria-label="سڕینەوە">✕</button>' +
+      '</div></div>';
+  }
+  app.innerHTML =
+    '<header class="bar">' + backBtn("data-go", "admin") + '<h2>دەستکاریکردن</h2><span class="count">' + kn(draft.items.length) + ' بڕگە</span></header>' +
+    '<main><div class="panel">' +
+      '<div class="field"><label for="title">ناوی ئۆپشن</label><input class="input" id="title" data-f="title" dir="auto" value="' + esc(draft.title) + '"></div>' +
+      '<h3>بڕگەکان</h3><div class="rows">' + rows + '</div>' +
+      '<button class="btn alt block" data-add="1">+ بڕگەی نوێ</button>' +
+    '</div></main>' +
+    '<div class="savebar"><button class="btn block" id="savebtn" data-save="1">پاشەکەوتکردن</button></div>';
+}
+
+function route() {
+  draft = null;
+  if (!currentUser) { renderLogin(); return; }
+  var key = (location.hash || "").replace("#", "");
+  if (key === "admin" && isAdmin) renderAdminHome();
+  else if (OPTION_KEYS.indexOf(key) >= 0 && data[key]) renderList(key);
+  else renderHome();
+}
+
+/* ---------- Data ---------- */
+async function seedMissing() {
+  if (seeding) return;
+  var def = defaults();
+  var missing = OPTION_KEYS.filter(function (k) { return !data[k]; });
+  if (!missing.length) return;
+  seeding = true;
+  try {
+    for (var i = 0; i < missing.length; i++) {
+      await setDoc(doc(db, "options", missing[i]), Object.assign({}, def[missing[i]], { updatedAt: serverTimestamp() }));
+    }
+  } catch (e) { toast("نەتوانرا داتای سەرەتایی دابنرێت"); }
+  seeding = false;
+}
+
+function stopListening() {
+  if (unsubOptions) { unsubOptions(); unsubOptions = null; }
+  if (unsubUsers) { unsubUsers(); unsubUsers = null; }
+}
+
+function startListening() {
+  unsubOptions = onSnapshot(collection(db, "options"), function (snap) {
+    var d = {};
+    snap.forEach(function (x) { d[x.id] = x.data(); });
+    data = d;
+    if (isAdmin) seedMissing();
+    if (view === "home" || view === "list" || view === "admin" || view === "loading") route();
+  }, function () { toast("نەتوانرا داتا بخوێنرێتەوە"); });
+  if (isAdmin) {
+    unsubUsers = onSnapshot(collection(db, "users"), function (snap) {
+      var u = [];
+      snap.forEach(function (x) { u.push(Object.assign({ uid: x.id }, x.data())); });
+      u.sort(function (a, b) { return String(a.name || "").localeCompare(String(b.name || "")); });
+      users = u;
+      if (view === "users") refreshUsersList();
+      else if (view === "admin") renderAdminHome();
+    });
+  }
+}
+
+async function createUserAccount(email, pass) {
+  var sec = initializeApp(firebaseConfig, "secondary-" + Date.now());
+  var secAuth = getAuth(sec);
+  try {
+    var cred;
+    try { cred = await createUserWithEmailAndPassword(secAuth, email, pass); }
+    catch (er) {
+      if (er && er.code === "auth/email-already-in-use") cred = await signInWithEmailAndPassword(secAuth, email, pass);
+      else throw er;
+    }
+    return cred.user.uid;
+  } finally {
+    try { await signOut(secAuth); } catch (e) {}
+    try { await deleteApp(sec); } catch (e) {}
+  }
+}
+
+function userErrMsg(er) {
+  var c = (er && er.code) || "";
+  if (c === "auth/invalid-credential" || c === "auth/wrong-password") return "ئەم ناوە پێشتر بە وشەی تێپەڕێکی تر دروست کراوە.";
+  if (c === "auth/weak-password") return "وشەی تێپەڕ لاوازە. لانی کەم ٦ پیت بەکاربهێنە.";
+  if (c === "auth/network-request-failed") return "پەیوەندی ئینتەرنێت نییە.";
+  if (c === "permission-denied" || (er && /permission/i.test(er.message || ""))) return "ڕێگەپێدان نییە. یاساکانی Firestore بپشکنە.";
+  return "هەژمارەکە دروست نەبوو. دووبارە هەوڵ بدەرەوە.";
+}
+
+/* ---------- Auth state ---------- */
+onAuthStateChanged(auth, async function (user) {
+  stopListening();
+  if (!user) {
+    currentUser = null; isAdmin = false; data = {}; users = []; draft = null;
+    renderLogin();
+    return;
+  }
+  isAdmin = (user.email || "").toLowerCase() === ADMIN_EMAIL;
+  if (isAdmin) {
+    currentUser = { uid: user.uid, name: "ramyar" };
+  } else {
+    try {
+      var snap = await getDoc(doc(db, "users", user.uid));
+      if (!snap.exists()) {
+        loginMsg = "ئەم هەژمارە ڕێگەپێدراو نییە. پەیوەندی بە ئەدمین بکە.";
+        await signOut(auth);
+        return;
+      }
+      currentUser = { uid: user.uid, name: snap.data().name || "" };
+    } catch (e) {
+      loginMsg = "نەتوانرا هەژمارەکە بپشکنرێت. دووبارە هەوڵ بدەرەوە.";
+      await signOut(auth);
+      return;
+    }
+  }
+  loginMsg = "";
+  renderLoading();
+  startListening();
+});
+
+/* ---------- Events ---------- */
+app.addEventListener("click", async function (e) {
+  var t = e.target.closest("button");
+  if (!t) return;
+  var key = app.dataset.key;
+  if (t.hasAttribute("data-go")) { var g = t.getAttribute("data-go"); if (location.hash === "#" + g) route(); else location.hash = g; return; }
+  if (t.hasAttribute("data-item")) { renderDetail(key, t.getAttribute("data-item")); window.scrollTo(0, 0); return; }
+  if (t.hasAttribute("data-back-list")) { renderList(t.getAttribute("data-back-list")); return; }
+  if (t.hasAttribute("data-signout")) { try { await signOut(auth); } catch (er) {} return; }
+  if (!isAdmin) return;
+  if (t.hasAttribute("data-edit")) { draft = null; renderEdit(t.getAttribute("data-edit")); window.scrollTo(0, 0); return; }
+  if (t.hasAttribute("data-users")) { renderUsers(); window.scrollTo(0, 0); return; }
+  if (t.hasAttribute("data-add")) { draft.items.push({ name: "بڕگەی " + kn(draft.items.length + 1), text: "" }); renderEdit(key); return; }
+  if (t.hasAttribute("data-del")) { draft.items.splice(+t.getAttribute("data-del"), 1); renderEdit(key); return; }
+  if (t.hasAttribute("data-mv")) {
+    var i = +t.getAttribute("data-i"), j = i + (+t.getAttribute("data-mv"));
+    if (j >= 0 && j < draft.items.length) { var tmp = draft.items[i]; draft.items[i] = draft.items[j]; draft.items[j] = tmp; renderEdit(key); }
+    return;
+  }
+  if (t.hasAttribute("data-save")) {
+    var out = {
+      title: (draft.title || "").trim() || data[key].title,
+      items: draft.items.map(function (x) { return { name: (x.name || "").trim() || "—", text: (x.text || "").trim() }; }),
+      updatedAt: serverTimestamp()
+    };
+    t.disabled = true;
+    try { await setDoc(doc(db, "options", key), out); toast("پاشەکەوت کرا"); }
+    catch (er) { toast("پاشەکەوت نەکرا. دووبارە هەوڵ بدەرەوە."); }
+    t.disabled = false;
+    return;
+  }
+  if (t.hasAttribute("data-deluser")) {
+    var uid = t.getAttribute("data-deluser");
+    t.disabled = true;
+    try { await deleteDoc(doc(db, "users", uid)); toast("سڕایەوە"); }
+    catch (er) { toast("نەسڕایەوە"); t.disabled = false; }
+    return;
+  }
+});
+
+app.addEventListener("input", function (e) {
+  var el = e.target;
+  if (!draft || !el.hasAttribute("data-f")) return;
+  var f = el.getAttribute("data-f");
+  if (f === "title") draft.title = el.value;
+  else draft.items[+el.getAttribute("data-i")][f] = el.value;
+});
+
+app.addEventListener("submit", async function (e) {
+  var fid = e.target.id;
+  if (fid === "loginForm") {
+    e.preventDefault();
+    var name = document.getElementById("ln").value.trim(), pass = document.getElementById("lp").value;
+    var lerr = document.getElementById("lerr"), lbtn = document.getElementById("lbtn");
+    loginMsg = "";
+    if (!name || !pass) { lerr.textContent = "ناو و وشەی تێپەڕ هەردووکیان بنووسە."; return; }
+    lerr.textContent = "";
+    lbtn.disabled = true;
+    try { await signInWithEmailAndPassword(auth, toEmail(name), pass); }
+    catch (er) { lerr.textContent = authMsg(er); lbtn.disabled = false; }
+    return;
+  }
+  if (fid === "userForm") {
+    e.preventDefault();
+    var nu = document.getElementById("nu").value.trim(), np = document.getElementById("np").value;
+    var uerr = document.getElementById("uerr"), ubtn = document.getElementById("ubtn");
+    uerr.textContent = "";
+    if (!nu || !np) { uerr.textContent = "ناو و وشەی تێپەڕ هەردووکیان بنووسە."; return; }
+    if (np.length < 6) { uerr.textContent = "وشەی تێپەڕ دەبێت لانی کەم ٦ پیت یان ژمارە بێت."; return; }
+    var email = toEmail(nu);
+    if (email.length - EMAIL_DOMAIN.length > 64) { uerr.textContent = "ناوەکە زۆر درێژە."; return; }
+    if (email === ADMIN_EMAIL) { uerr.textContent = "ئەم ناوە تەرخان کراوە."; return; }
+    if (users.some(function (x) { return x.email === email; })) { uerr.textContent = "ئەم ناوە پێشتر بەکارهاتووە."; return; }
+    ubtn.disabled = true;
+    try {
+      var uid2 = await createUserAccount(email, np);
+      await setDoc(doc(db, "users", uid2), { name: nu, email: email, createdAt: serverTimestamp() });
+      toast("بەکارهێنەر زیاد کرا");
+      document.getElementById("nu").value = "";
+      document.getElementById("np").value = "";
+    } catch (er) { uerr.textContent = userErrMsg(er); }
+    ubtn.disabled = false;
+  }
+});
+
+window.addEventListener("hashchange", function () { if (currentUser) route(); });
+renderLoading();
+
+</script>
+</body>
+</html>
