@@ -176,6 +176,16 @@
 
   @media (max-width: 340px) { .grid-16 { grid-template-columns: 1fr; } }
   @media (prefers-reduced-motion: reduce) { .choice { transition: none; } }
+
+  .stepcount { margin: 0 0 4px; color: var(--muted); font-size: .9rem; font-weight: 700; }
+  .steps { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 12px; }
+  .step { display: flex; align-items: flex-start; gap: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .step .sn { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .95rem; }
+  .step .st { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.75; text-align: start; }
+  .theme-1 .step .sn { background: var(--a1-soft); color: var(--a1); }
+  .theme-2 .step .sn { background: var(--a2-soft); color: var(--a2); }
+  .theme-3 .step .sn { background: var(--a3-soft); color: var(--a3); }
+  textarea.input.area { min-height: 120px; resize: vertical; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -320,14 +330,30 @@ function renderList(key) {
     '<main><ul class="list' + (o.items.length > 8 ? ' grid-16' : '') + '">' + items + '</ul></main>';
 }
 
+// Each line of an item's text is one step. A leading "1", "2." etc. that matches the step number is dropped, because the badge shows it.
+function parseSteps(text) {
+  var lines = String(text || "").split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+  return lines.map(function (l, i) {
+    var m = l.match(/^(\d+)\s*[.)\-:]?\s+(.*)$/);
+    return (m && parseInt(m[1], 10) === i + 1) ? m[2] : l;
+  });
+}
+
 function renderDetail(key, i) {
   view = "detail";
   var o = data[key], it = o.items[i];
   if (!it) { renderList(key); return; }
+  var steps = parseSteps(it.text);
+  var html = "";
+  steps.forEach(function (st, n) {
+    html += '<li class="step"><span class="sn">' + kn(n + 1) + '</span><span class="st" dir="auto">' + esc(st) + '</span></li>';
+  });
+  if (!html) html = '<li class="step"><span class="st" style="color:var(--muted)">هێشتا نووسینێک دانەنراوە.</span></li>';
   app.innerHTML =
     '<header class="bar">' + backBtn("data-back-list", key) + '<h2 dir="auto">' + esc(o.title) + '</h2></header>' +
     '<main><section class="detail"><div class="badge-lg">' + kn(+i + 1) + '</div><h3 dir="auto">' + esc(it.name) + '</h3>' +
-    '<p>' + esc(it.text) + '</p></section></main>';
+    (steps.length > 1 ? '<p class="stepcount">' + kn(steps.length) + ' هەنگاو</p>' : '') +
+    '<ol class="steps">' + html + '</ol></section></main>';
 }
 
 function renderAdminHome() {
@@ -389,7 +415,7 @@ function renderEdit(key) {
     rows +=
       '<div class="row"><div class="row-top"><span class="badge">' + kn(i + 1) + '</span>' +
       '<input class="input" data-f="name" data-i="' + i + '" dir="auto" value="' + esc(it.name) + '" aria-label="ناوی بڕگە"></div>' +
-      '<input class="input" data-f="text" data-i="' + i + '" dir="auto" value="' + esc(it.text) + '" aria-label="نووسینی بڕگە">' +
+      '<textarea class="input area" rows="6" data-f="text" data-i="' + i + '" dir="auto" aria-label="نووسینی بڕگە" placeholder="هەر هەنگاوێک لە دێڕێکی نوێ بنووسە">' + esc(it.text) + '</textarea>' +
       '<div class="row-tools">' +
         '<button class="tool" data-mv="-1" data-i="' + i + '" aria-label="بۆ سەرەوە"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
         '<button class="tool" data-mv="1" data-i="' + i + '" aria-label="بۆ خوارەوە"' + (i === draft.items.length - 1 ? ' disabled' : '') + '>↓</button>' +
